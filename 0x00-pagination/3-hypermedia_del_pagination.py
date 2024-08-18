@@ -41,29 +41,33 @@ class Server:
 
     def get_hyper_index(self, index: int = None, page_size: int = 10) -> Dict[str, Any]:
         """
-        Retrieves a page of data with hypermedia metadata.
-
-        Args:
-            index (int, optional): The index of the first item in the page. Defaults to None.
-            page_size (int, optional): The number of items per page. Defaults to 10.
-
-        Returns:
-            Dict[str, Any]: A dictionary containing the paginated data and hypermedia links.
+        Return a dictionary with hypermedia pagination information
         """
-        assert type(index) == int and index >= 0, "index must be an integer greater than or equal to 0"
-        assert type(page_size) == int and page_size > 0, "page_size must be an integer greater than 0"
-        
-        indexed_dataset = self.indexed_dataset()
+        assert index is None or (isinstance(index, int) and index >= 0)
+        assert isinstance(page_size, int) and page_size > 0
+
+        indexed_data = self.indexed_dataset()
+        data_length = len(indexed_data)
+
+        if index is None:
+            index = 0
+
+        assert index < data_length
+
+        next_index = index
         data = []
-        next_index = index + page_size
-        for i in range(index, next_index):
-            if i in indexed_dataset:
-                data.append(indexed_dataset[i])
-                
-        hypermedia = {
+
+        for _ in range(page_size):
+            while next_index < data_length and next_index not in indexed_data:
+                next_index += 1
+            if next_index == data_length:
+                break
+            data.append(indexed_data[next_index])
+            next_index += 1
+
+        return {
             'index': index,
             'next_index': next_index,
-            'page_size': page_size,
+            'page_size': len(data),
             'data': data
         }
-        return hypermedia

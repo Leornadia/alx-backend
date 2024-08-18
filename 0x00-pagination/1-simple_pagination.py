@@ -3,7 +3,8 @@
 This module provides a function for calculating the index range for pagination.
 """
 
-from typing import Tuple
+# ... rest of your code
+from typing import Tuple, List, Dict, Any
 
 
 def index_range(page: int, page_size: int) -> Tuple[int, int]:
@@ -59,9 +60,37 @@ class Server:
         """
         assert type(page) == int and page > 0, "page must be an integer greater than 0"
         assert type(page_size) == int and page_size > 0, "page_size must be an integer greater than 0"
-        
+
         dataset = self.dataset()
         start_index, end_index = index_range(page, page_size)
         if end_index > len(dataset):
             return []
         return dataset[start_index:end_index]
+
+    def get_hyper(self, page: int = 1, page_size: int = 10) -> Dict[str, Any]:
+        """
+        Retrieves a page of data with hypermedia metadata.
+
+        Args:
+            page (int, optional): The page number. Defaults to 1.
+            page_size (int, optional): The number of items per page. Defaults to 10.
+
+        Returns:
+            Dict[str, Any]: A dictionary containing the paginated data and hypermedia links.
+        """
+        assert type(page) == int and page > 0, "page must be an integer greater than 0"
+        assert type(page_size) == int and page_size > 0, "page_size must be an integer greater than 0"
+
+        dataset = self.dataset()
+        data = self.get_page(page, page_size)
+        total_pages = math.ceil(len(dataset) / page_size)
+
+        hypermedia = {
+            'page_size': page_size,
+            'page': page,
+            'data': data,
+            'next_page': page + 1 if page < total_pages else None,
+            'prev_page': page - 1 if page > 1 else None,
+            'total_pages': total_pages
+        }
+        return hypermedia

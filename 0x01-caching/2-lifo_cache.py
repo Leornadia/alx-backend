@@ -1,39 +1,54 @@
 #!/usr/bin/env python3
-"""LIFOCache module"""
+"""
+LIFOCache module
+"""
 
 from base_caching import BaseCaching
 
 
 class LIFOCache(BaseCaching):
-    """LIFO caching system"""
+    """
+    LIFOCache class that inherits from BaseCaching and implements a LIFO
+    caching system.
+    """
 
     def __init__(self):
-        """Initialize the class with parent's init method"""
+        """
+        Initialize the LIFOCache instance.
+        """
         super().__init__()
-        self.keys_order = []  # To track the order of keys
+        self.lifo_order = []  # List to keep track of LIFO order
 
     def put(self, key, item):
-        """Add an item in the cache"""
+        """
+        Add an item to the cache.
+
+        Args:
+            key (str): The key for the item.
+            item (any): The item to store.
+        """
         if key is None or item is None:
             return
 
         if key in self.cache_data:
-            # Update the item if the key already exists
-            self.cache_data[key] = item
-            self.keys_order.remove(key)
-            self.keys_order.append(key)
-        else:
-            if len(self.cache_data) >= BaseCaching.MAX_ITEMS:
-                # Remove the last item added (LIFO)
-                last_key = self.keys_order.pop()
-                del self.cache_data[last_key]
-                print(f"DISCARD: {last_key}")
+            self.lifo_order.remove(key)  # Update order if key exists
 
-            # Add the new item to the cache
-            self.cache_data[key] = item
-            self.keys_order.append(key)
+        self.cache_data[key] = item
+        self.lifo_order.append(key)
+
+        if len(self.cache_data) > BaseCaching.MAX_ITEMS:
+            last_key = self.lifo_order.pop()
+            del self.cache_data[last_key]
+            print("DISCARD:", last_key)
 
     def get(self, key):
-        """Get an item by key"""
-        return self.cache_data.get(key, None)
+        """
+        Get an item from the cache.
 
+        Args:
+            key (str): The key of the item to retrieve.
+
+        Returns:
+            any: The item associated with the key or None if not found.
+        """
+        return self.cache_data.get(key)

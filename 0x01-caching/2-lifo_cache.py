@@ -1,43 +1,34 @@
 #!/usr/bin/env python3
-"""
-LIFOCache module
-"""
+"""LIFOCache module"""
+
 from base_caching import BaseCaching
 
-
 class LIFOCache(BaseCaching):
-    """
-    LIFO caching system
-    """
+    """LIFO caching system"""
 
     def __init__(self):
-        """
-        Initialize the class with parent's init method
-        """
+        """Initialize the class"""
         super().__init__()
-        self.keys_order = []
+        self.last_key = None  # Track the last key inserted for LIFO behavior
 
     def put(self, key, item):
-        """
-        Add an item in the cache
-        """
+        """Add an item in the cache"""
         if key is None or item is None:
             return
 
-        if key in self.cache_data:
-            self.keys_order.remove(key)
+        # Add or update the cache data
         self.cache_data[key] = item
-        self.keys_order.append(key)
 
+        # Handle LIFO removal if necessary
         if len(self.cache_data) > BaseCaching.MAX_ITEMS:
-            last_key = self.keys_order.pop(0)
-            del self.cache_data[last_key]
-            print(f"DISCARD: {last_key}")
+            if self.last_key:
+                del self.cache_data[self.last_key]
+                print(f"DISCARD: {self.last_key}")
+
+        # Update last_key to the current key
+        self.last_key = key
 
     def get(self, key):
-        """
-        Get an item by key
-        """
-        if key is None or key not in self.cache_data:
-            return None
-        return self.cache_data[key]
+        """Get an item by key"""
+        return self.cache_data.get(key, None)
+

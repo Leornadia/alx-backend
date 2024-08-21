@@ -1,43 +1,51 @@
 #!/usr/bin/env python3
-"""MRUCache module"""
+"""
+MRU Caching System
+"""
+
 
 from base_caching import BaseCaching
 
 
 class MRUCache(BaseCaching):
-    """MRU caching system"""
+    """
+    MRU Caching System
+    """
 
     def __init__(self):
-        """Initialize the class with parent's init method"""
+        """
+        Initialize the MRU cache.
+        """
         super().__init__()
-        self.mru_key = None  # To keep track of the most recently used key
+        self.mru_order = []
 
     def put(self, key, item):
-        """Add an item in the cache"""
+        """
+        Adds a key-value pair to the cache.
+        If the key or item is None, the method does nothing.
+        If the number of items in the cache exceeds the maximum,
+        the most recently used item is discarded following the MRU algorithm.
+        """
         if key is None or item is None:
             return
 
         if key in self.cache_data:
-            # Update the item
-            self.cache_data[key] = item
-        else:
-            if len(self.cache_data) >= BaseCaching.MAX_ITEMS:
-                # Remove the most recently used item
-                if self.mru_key is not None:
-                    del self.cache_data[self.mru_key]
-                    print(f"DISCARD: {self.mru_key}")
-            # Add the new item to the cache
-            self.cache_data[key] = item
+            self.mru_order.remove(key)
+        self.mru_order.append(key)
+        self.cache_data[key] = item
 
-        # Update the most recently used key
-        self.mru_key = key
+        if len(self.cache_data) > BaseCaching.MAX_ITEMS:
+            most_recent_key = self.mru_order.pop(0)
+            print(f"DISCARD: {most_recent_key}")
+            del self.cache_data[most_recent_key]
 
     def get(self, key):
-        """Get an item by key"""
+        """
+        Retrieves the value associated with the given key.
+        If the key is None or does not exist in the cache, returns None.
+        """
         if key is None or key not in self.cache_data:
             return None
-
-        # Update the most recently used key
-        self.mru_key = key
+        self.mru_order.remove(key)
+        self.mru_order.append(key)
         return self.cache_data[key]
-

@@ -1,43 +1,50 @@
 #!/usr/bin/env python3
-"""LRUCache module"""
+"""
+LRU Caching System
+"""
 
+
+from collections import OrderedDict
 from base_caching import BaseCaching
 
 
 class LRUCache(BaseCaching):
-    """LRU caching system"""
+    """
+    LRU Caching System
+    """
 
     def __init__(self):
-        """Initialize the class with parent's init method"""
+        """
+        Initialize the LRU cache.
+        """
         super().__init__()
-        self.lru_order = []  # List to maintain the order of usage
+        self.cache_data = OrderedDict()
 
     def put(self, key, item):
-        """Add an item in the cache"""
+        """
+        Adds a key-value pair to the cache.
+        If the key or item is None, the method does nothing.
+        If the number of items in the cache exceeds the maximum,
+        the least recently used item is discarded following the LRU algorithm.
+        """
         if key is None or item is None:
             return
 
         if key in self.cache_data:
-            # Update the item and move the key to the end of the LRU order
-            self.cache_data[key] = item
-            self.lru_order.remove(key)
-            self.lru_order.append(key)
-        else:
-            if len(self.cache_data) >= BaseCaching.MAX_ITEMS:
-                # Remove the least recently used item
-                lru_key = self.lru_order.pop(0)
-                del self.cache_data[lru_key]
-                print(f"DISCARD: {lru_key}")
-            # Add the new item and update the LRU order
-            self.cache_data[key] = item
-            self.lru_order.append(key)
+            self.cache_data.move_to_end(key)
+        self.cache_data[key] = item
+
+        if len(self.cache_data) > BaseCaching.MAX_ITEMS:
+            least_recent_key = next(iter(self.cache_data))
+            print(f"DISCARD: {least_recent_key}")
+            del self.cache_data[least_recent_key]
 
     def get(self, key):
-        """Get an item by key"""
+        """
+        Retrieves the value associated with the given key.
+        If the key is None or does not exist in the cache, returns None.
+        """
         if key is None or key not in self.cache_data:
             return None
-        # Update the LRU order since this key was recently used
-        self.lru_order.remove(key)
-        self.lru_order.append(key)
+        self.cache_data.move_to_end(key)
         return self.cache_data[key]
-

@@ -1,45 +1,40 @@
 #!/usr/bin/env python3
-"""
-LIFO Caching System
-"""
-
+"""LIFOCache module"""
 
 from base_caching import BaseCaching
 
 
 class LIFOCache(BaseCaching):
-    """
-    LIFO Caching System
-    """
+    """LIFO caching system"""
 
     def __init__(self):
-        """
-        Initialize the LIFO cache.
-        """
+        """Initialize the class with parent's init method"""
         super().__init__()
+        self.last_key = None  # To keep track of the last key added
 
     def put(self, key, item):
-        """
-        Adds a key-value pair to the cache.
-        If the key or item is None, the method does nothing.
-        If the number of items in the cache exceeds the maximum,
-        the newest item is discarded following the LIFO algorithm.
-        """
+        """Add an item in the cache"""
         if key is None or item is None:
             return
 
-        self.cache_data[key] = item
+        if key in self.cache_data:
+            # Update the item if the key already exists
+            self.cache_data[key] = item
+        else:
+            if len(self.cache_data) >= BaseCaching.MAX_ITEMS:
+                # Remove the last item added (LIFO)
+                if self.last_key is not None:
+                    del self.cache_data[self.last_key]
+                    print(f"DISCARD: {self.last_key}")
+            # Add the new item to the cache
+            self.cache_data[key] = item
 
-        if len(self.cache_data) > BaseCaching.MAX_ITEMS:
-            last_key = list(self.cache_data.keys())[-1]
-            print(f"DISCARD: {last_key}")
-            del self.cache_data[last_key]
+        # Update the last key to this key
+        self.last_key = key
 
     def get(self, key):
-        """
-        Retrieves the value associated with the given key.
-        If the key is None or does not exist in the cache, returns None.
-        """
+        """Get an item by key"""
         if key is None or key not in self.cache_data:
             return None
         return self.cache_data[key]
+

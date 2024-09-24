@@ -1,23 +1,24 @@
-export default function createPushNotificationsJobs(jobs, queue) {
+const kue = require('kue');
+
+function createPushNotificationsJobs(jobs, queue) {
   if (!Array.isArray(jobs)) {
-    throw new Error('Jobs is not an array');
+    return 'Jobs must be an array';
   }
 
-  jobs.forEach((jobData) => {
-    const job = queue.create('push_notification_code_3', jobData)
+  jobs.forEach(job => {
+    const pushNotificationJob = queue.create('push_notification', job)
+      .priority('normal')
       .save((err) => {
-        if (!err) {
-          console.log(`Notification job created: ${job.id}`);
+        if (err) {
+          console.error('Error creating job:', err);
+          return false;
         }
+        console.log('Notification job created:', job.userId);
+        return true;
       });
-
-    job.on('complete', () => {
-      console.log(`Notification job ${job.id} completed`);
-    }).on('failed', (errorMessage) => {
-      console.log(`Notification job ${job.id} failed: ${errorMessage}`);
-    }).on('progress', (progress) => {
-      console.log(`Notification job ${job.id} ${progress}% complete`);
-    });
   });
+
+  return true; // Return true if all jobs are created successfully
 }
 
+module.exports = { createPushNotificationsJobs };

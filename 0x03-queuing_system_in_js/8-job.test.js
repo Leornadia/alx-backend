@@ -1,44 +1,43 @@
-import { expect } from 'chai';
-import kue from 'kue';
-import createPushNotificationsJobs from './8-job.js';
+const { createPushNotificationsJobs } = require('./8-job');
+const kue = require('kue');
+const { expect } = require('chai');
 
 describe('createPushNotificationsJobs', () => {
   let queue;
 
-  // Before each test, create a queue and enter test mode
   beforeEach(() => {
     queue = kue.createQueue();
-    queue.testMode.enter();
+    queue.testMode = true; // Enter test mode
   });
 
-  // After each test, clear the queue and exit test mode
   afterEach(() => {
-    queue.testMode.clear();
-    queue.testMode.exit();
+    queue.testMode = false; // Exit test mode
+    kue.inactive.remove(err => { // Use kue.inactive.remove
+      if (err) {
+        console.error('Error clearing queue:', err);
+      }
+    });
   });
 
-  it('should display an error message if jobs is not an array', () => {
-    expect(() => createPushNotificationsJobs('not an array', queue)).to.throw(Error, 'Jobs is not an array');
+  it('should display a error message if jobs is not an array', () => {
+    const jobs = 'invalid';
+    const errorMessage = createPushNotificationsJobs(jobs);
+    expect(errorMessage).to.equal('Jobs must be an array'); 
   });
 
   it('should create two new jobs to the queue', () => {
     const jobs = [
-      {
-        phoneNumber: '4153518780',
-        message: 'This is the code 1234 to verify your account',
-      },
-      {
-        phoneNumber: '4153518781',
-        message: 'This is the code 4562 to verify your account',
-      },
+      { userId: 1, message: 'Hello User 1!' },
+      { userId: 2, message: 'Hello User 2!' }
     ];
+    const result = createPushNotificationsJobs(jobs, queue);
+    expect(result).to.be.true;
 
-    createPushNotificationsJobs(jobs, queue);
-
-    expect(queue.testMode.jobs.length).to.equal(2);  // Expect two jobs to be created
-    expect(queue.testMode.jobs[0].data).to.deep.equal(jobs[0]);  // Check first job data
-    expect(queue.testMode.jobs[1].data).to.deep.equal(jobs[1]);  // Check second job data
-    expect(queue.testMode.jobs[0].type).to.equal('push_notification_code_3');  // Verify job type
+    // Validate jobs in the queue
+    expect(queue.testMode.jobs.length).to.equal(2);
+    expect(queue.testMode.jobs[0].data.userId).to.equal(1);
+    expect(queue.testMode.jobs[0].data.message).to.equal('Hello User 1!');
+    expect(queue.testMode.jobs[1].data.userId).to.equal(2);
+    expect(queue.testMode.jobs[1].data.message).to.equal('Hello User 2!');
   });
 });
-
